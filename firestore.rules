@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny all by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidProject(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.userId is string && data.userId.size() <= 128
+          && data.name is string && data.name.size() <= 200
+          && data.html is string && data.html.size() <= 500000
+          && data.css is string && data.css.size() <= 500000
+          && data.js is string && data.js.size() <= 500000
+          && data.updatedAt is number
+          && data.isFavorite is bool
+          && data.isArchived is bool;
+    }
+
+    function isValidChatMessage(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.text is string && data.text.size() <= 5000
+          && data.timestamp is number
+          && data.sender is map
+          && data.sender.username is string && data.sender.username.size() <= 100
+          && data.sender.avatar is string && data.sender.avatar.size() <= 2000;
+    }
+
+    match /chats/{chatId} {
+      allow create: if isSignedIn()
+        && isValidId(chatId)
+        && isValidChatMessage(request.resource.data);
+      allow read: if isSignedIn();
+      allow update: if isSignedIn()
+        && isValidChatMessage(request.resource.data);
+      allow delete: if false;
+    }
+
+    match /projects/{projectId} {
+      allow create: if isSignedIn() 
+        && isValidId(projectId)
+        && isValidProject(request.resource.data)
+        && request.resource.data.userId == request.auth.uid;
+        
+      allow read, delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && isValidProject(request.resource.data)
+        && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}

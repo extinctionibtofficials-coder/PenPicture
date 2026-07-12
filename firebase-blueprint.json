@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A design project created in PenPicture containing HTML, CSS, and JS code.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "html": { "type": "string" },
+        "css": { "type": "string" },
+        "js": { "type": "string" },
+        "updatedAt": { "type": "number" },
+        "isFavorite": { "type": "boolean" },
+        "isArchived": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "name", "html", "css", "js", "updatedAt", "isFavorite", "isArchived"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "A global chat message created by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sender": {
+          "type": "object",
+          "properties": {
+            "username": { "type": "string" },
+            "avatar": { "type": "string" },
+            "status": { "type": "string" }
+          },
+          "required": ["username", "avatar", "status"]
+        },
+        "text": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "attachmentUrl": { "type": "string" },
+        "isPinned": { "type": "boolean" }
+      },
+      "required": ["id", "sender", "text", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Collections of design projects per user."
+    },
+    "/chats/{chatId}": {
+      "schema": "ChatMessage",
+      "description": "Global chat message collection shared by all users."
+    }
+  }
+}
